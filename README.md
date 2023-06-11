@@ -32,6 +32,11 @@ We can rearrange this equation to find the required coolant temperature $T_c$ fo
 
 $$T_c=T+\frac{v \rho C_p (T-T_0)-Q_{gen}}{UA}$$
 
+The contour plot below demonstrates the relationship between $T_{reactor}$ (y values) and $T_{coolant}$ (z values) at different space velocities (x values) in a cascade reaction $A\longrightarrow P \longrightarrow S$.
+
+<img width="398" alt="TvT_contour" src="https://github.com/real-Crema/Dynamic-Simulation-of-CSTR/assets/100750226/de0d5d99-cab9-41b0-b51c-f2d21c3f41ee">
+
+If we draw a straight line at a certain space velocity, like the yellow one, we find 5 intersections at $T_{coolant}$=300 K, which correspond to 5 possible steady-states. Similarly, the red line has 3 intersections at $T_{coolant}$=400 K. As we decrease $v/V_R$, we moves from multiple steady-state to monotonic behavior.
 ## Define custom reactions
 
 ```
