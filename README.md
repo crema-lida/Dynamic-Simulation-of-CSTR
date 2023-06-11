@@ -8,15 +8,29 @@ The change of reactor temperature and concentrations of components with time is 
 
 $$\frac{(c_{j0}-c_j)v}{V_R}+r_j=\frac{dc_j}{dt}$$
 
-$$\sum\frac{\Delta H_i\cdot r_i}{\rho C_P}+\frac{v(T_0-T)}{V_R}+\frac{UA(T_c-T)}{V_R\rho C_p}=\frac{dT}{dt}$$
+$$\sum\frac{\Delta H_i\ r_i}{\rho C_P}+\frac{v(T_0-T)}{V_R}+\frac{UA(T_c-T)}{V_R\rho C_p}=\frac{dT}{dt}$$
 
-Where $r_j$ in the material balance equation denotes the net generation rate of component j, and $r_i$ in the heat balance equation is solely the consumption rate of component i in each reaction. These equations are solved using explicit Runge-Kutta method of order 5(4). The error is controlled assuming accuracy of the fourth-order method, but steps are taken using the fifth-order accurate formula.
+where $r_j$ in the material balance equation denotes the net generation rate of component $j$, and $r_i$ in the heat balance equation is solely the consumption rate of component $i$ in each reaction.
+
+$$r_i=k_{0i}\ \mathrm{exp}(\frac{E_a}{RT})\prod c_k^n$$
+
+These equations are solved using explicit Runge-Kutta method of order 5(4). The error is controlled assuming accuracy of the fourth-order method, but steps are taken using the fifth-order accurate formula.
 
 The steady-state heat generation/removal rate ($Q_{gen},\ Q_{rem}$) as a function of reactor temperature is obtained by solving steady-state material balance equations when $dc_j/dt=0$.
 
 ## $T_{reactor}/T_{coolant}$ Behavior Changes as a Function of Space Velocity ($v/V_R$)
 
+The steady-state heat balance equation ($dT/dt=0$) is
 
+$$\sum\Delta H_i\ r_i V_R=v \rho C_p(T-T_0)+UA(T-T_c)$$
+
+which simply means
+
+$$Q_{gen}=Q_{rem}$$
+
+We can rearrange this equation to find the required coolant temperature $T_c$ for any given steady-state reactor temperature $T$ and volume flow rate $v$.
+
+$$T_c=T+\frac{v \rho C_p (T-T_0)-Q_{gen}}{UA}$$
 
 ## Define custom reactions
 
