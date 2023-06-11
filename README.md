@@ -1,6 +1,8 @@
-## Main Window
+# Dynamic Simulation of CSTR
+This app allows you to control different operating parameters (e.g., feed temperature and volume flow rate) and study the dynamic behavior of a CSTR. Furthermore, you are able to define other power-law reactions and scripts to change input parameters.
 
-<img src="C:\Users\Crema\AppData\Roaming\Typora\typora-user-images\image-20230611215103123.png" alt="image-20230611215103123" style="zoom: 50%;" />
+## Main Window
+<img width="818" alt="main_window" src="https://github.com/real-Crema/Dynamic-Simulation-of-CSTR/assets/100750226/baea4c3c-66ed-4d5a-a533-f32ab3191ced">
 
 ## How To Read Contour Plot
 
