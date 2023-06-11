@@ -1,0 +1,12 @@
+{
+  "T0 increases linearly": ["T0", "T0 + 0.5"],
+  "T0 decreases linearly": ["T0", "T0 - 0.5"],
+  "T0 fluctuates in a sine wave": ["T0", "350 + 20 * sin( 0.02 * pi * t)"],
+  "Tc increases linearly": ["Tc", "Tc + 0.5"],
+  "Tc decreases linearly": ["Tc", "Tc - 0.5"],
+  "Tc fluctuates in a sine wave": ["Tc", "320 + 20 * sin( 0.02 * pi * t)"],
+  "v increases linearly": ["v", "v + 0.0005"],
+  "v decreases linearly": ["v", "v - 0.0005"],
+  "UA increases linearly": ["UA", "UA + 20"],
+  "UA decreases linearly": ["UA", "UA - 20"]
+}
