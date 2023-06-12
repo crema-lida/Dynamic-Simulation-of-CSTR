@@ -1,7 +1,7 @@
 # Dynamic Simulation of CSTR
 This app allows you to control different operating parameters (e.g., feed temperature and volume flow rate) and study the dynamic behavior of a CSTR. Furthermore, you are able to define your own power-law reactions and scripts to change input parameters.
 
-## Transient and steady-State curves
+## Transient and steady-state curves
 <img width="720" alt="cascade" src="https://github.com/real-Crema/Dynamic-Simulation-of-CSTR/assets/100750226/f9548e07-1e59-4ddb-8fa4-465019202390">
 
 The change of reactor temperature and concentrations of components with time is obtained by solving a system of ordinary differential equations:
