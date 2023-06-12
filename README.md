@@ -140,6 +140,8 @@ The control over operating variables ($T_0,\ T_c,\ v,\ UA$) can be automated via
 }
 ```
 
+Each brackets `[]` consists of two strings: the variable to control and the value to be assigned to it. All scripts are executed once in each frame. That is to say, if you set Seconds Per Frame to 10, and select the first script, the program will do `T0 = T0 + 0.5` at each frame, so that `T0` will increase 0.5 K every 10 seconds.
+
 Once a script is created or modified, save the file and click the Reset button, and it will automatically appear on this window:
 
 <img width="427" alt="control-variables" src="https://github.com/real-Crema/Dynamic-Simulation-of-CSTR/assets/100750226/a7b4fa02-f0cd-4748-b2ed-409079536a61">
