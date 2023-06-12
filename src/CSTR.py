@@ -139,12 +139,12 @@ def rate(C, T, coeff, exp, k0, Ea) -> NDArray:  # shape (n_reac, -1, n_comp)
     return coeff * f_T * f_C
 
 
-# @njit(cache=True)
+@njit(cache=True)
 def Q_transient(C, T, VR, coeff, exp, k0, Ea, dH) -> NDArray:  # shape (-1,)
     return (dH * VR * rate(C, T, coeff, exp, k0, Ea)).sum(axis=0).sum(axis=1)
 
 
-# @njit(cache=True)
+@njit(cache=True)
 def dydt(y, v, C0, T0, VR, Cpv, Tc, UA, coeff, exp, k0, Ea, dH) -> NDArray:  # shape (n_comp + 1,)
     C, T = y[:-1], y[-1:]
     dCdt = (C0 - C) * v / VR + rate(C, T, coeff, exp, k0, Ea).sum(axis=0).reshape(-1)

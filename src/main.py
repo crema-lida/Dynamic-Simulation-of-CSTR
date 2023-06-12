@@ -16,6 +16,7 @@ theme_color = ['#79B4B7', '#FDA769', '#98A8F8', '#1597E5'][0]  # green, orange, 
 silver = '#D8D8D8'
 title = 'Dynamic Simulation of CSTR'
 reactions_dir = '../reactions'
+scripts_dir = '..'
 
 plt.rcParams.update({
     'backend': 'TkAgg',
@@ -191,9 +192,11 @@ def reset():
     UA_slider.reset()
     v_slider.reset()
 
-    if 'scripts.json' not in os.listdir():
+    if f'scripts.json' not in os.listdir(scripts_dir):
+        prompt.set_text('scripts.json not found.')
+        state['prompt_start'] = time.time()
         return
-    with open(f'scripts.json') as f:
+    with open(f'{scripts_dir}/scripts.json') as f:
         state['scripts'] = json.load(f)
     ax_check_btn.clear()
     check_btn.__init__(
