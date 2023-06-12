@@ -12,7 +12,7 @@ $$\sum\frac{\Delta H_i\ r_i}{\rho C_P}+\frac{v(T_0-T)}{V_R}+\frac{UA(T_c-T)}{V_R
 
 where $r_j$ in the material balance equation denotes the net generation rate of component $j$, and $r_i$ in the heat balance equation is solely the consumption rate of component $i$ in each reaction.
 
-$$r_i=k_{0i}\ \mathrm{exp}(-\frac{E_a}{RT})\prod c_k^n$$
+$$r_i=-k_{0i}\ \mathrm{exp}(-\frac{E_a}{RT})\prod c_k^n$$
 
 These equations are solved using explicit Runge-Kutta method of order 5(4). The error is controlled assuming accuracy of the fourth-order method, but steps are taken using the fifth-order accurate formula.
 
