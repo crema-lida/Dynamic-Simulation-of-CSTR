@@ -119,7 +119,7 @@ The `.json` file for the van der Vusse reaction looks like this:
 ]
 ```
 
-We use 3 `{}` to define those reactions and then use the last `{}` to specify other necessary operating parameters. Be aware that enthalpy of reaction ( `"dH"` ) and reaction rate is calculated based on the first component written in each `{}`. In this case, we also set initial values for concentrations and reactor temperature by specifying `"initial"` (optional). If specified, values in `initial["C"]` are assigned to each component in `"C0"` at t=0; if not specified, the initial values of `"C"` and `"T"` will be identical to `"C0"` and `"T0"`.
+We use 3 `{}` to define those reactions and then use the last `{}` to specify other necessary operating parameters. Be aware that enthalpy of reaction ( `"dH"` ) and reaction rate is calculated based on the first component written in each `{}`. In this case, we also set initial values for concentrations and reactor temperature by specifying `"initial"` (optional). If specified, values in `initial["C"]` will be assigned to each component at t=0; if not specified, the initial values of `"C"` and `"T"` will be identical to `"C0"` and `"T0"`.
 
 ## Define custom scripts 
 
