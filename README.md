@@ -1,7 +1,7 @@
 # Dynamic Simulation of CSTR
 This app allows you to control different operating parameters (e.g., feed temperature and volume flow rate) and study the dynamic behavior of a CSTR. Furthermore, you are able to define your own power-law reactions and scripts to change input parameters.
 
-## Transient and Steady-State Curves
+## Transient and steady-State curves
 <img width="720" alt="main_window" src="https://github.com/real-Crema/Dynamic-Simulation-of-CSTR/assets/100750226/baea4c3c-66ed-4d5a-a533-f32ab3191ced">
 
 The change of reactor temperature and concentrations of components with time is obtained by solving a system of ordinary differential equations:
@@ -18,7 +18,7 @@ These equations are solved using explicit Runge-Kutta method of order 5(4). The 
 
 The steady-state heat generation/removal rate ($Q_{gen},\ Q_{rem}$) as a function of reactor temperature is obtained by solving steady-state material balance equations when $dc_j/dt=0$.
 
-## $T_{reactor}/T_{coolant}$ Behavior Changes as a Function of Space Velocity ($v/V_R$)
+## $T_{reactor}/T_{coolant}$ Behavior changes as a function of space velocity ($v/V_R$)
 
 The steady-state heat balance equation ($dT/dt=0$) is
 
@@ -38,6 +38,8 @@ The contour plot below demonstrates the relationship between $T_{reactor}$ (y va
 
 If we draw a straight line at a certain space velocity, like the yellow one, we find 5 intersections at $T_{coolant}$=300 K, which correspond to 5 possible steady-states. Similarly, the red line has 3 intersections at $T_{coolant}$=400 K. As we decrease $v/V_R$, we moves from multiple steady-state to monotonic behavior.
 ## Define custom reactions
+
+Reactions can be defined by a `.json` file under `reactions` directory. An example file for the first-order reaction $A\longrightarrow P$ is shown below.
 
 ```
 [
@@ -63,3 +65,79 @@ If we draw a straight line at a certain space velocity, like the yellow one, we 
     }
 ]
 ```
+
+We can define multiple reactions in one file, so that we can simulate a complex system composed of many simple power-law reactions. Take the van der Vusse reaction for example:
+
+$$A\stackrel{k_1}{\longrightarrow} B \stackrel{k_2}{\longrightarrow} C$$
+
+$$2A\stackrel{k_3}{\longrightarrow} D$$
+
+The `.json` file for the van der Vusse reaction looks like this:
+
+```
+[
+    {
+        "A": [-1, 1],
+        "B": [1, 0],
+        "k0": 3.575e8,
+        "Ea": 81.1305,
+        "dH": 4.2e6
+    },
+    {
+        "B": [-1, 1],
+        "C": [1, 0],
+        "k0": 3.575e8,
+        "Ea": 81.1305,
+        "dH": -11e6
+    },
+    {
+        "A": [-2, 2],
+        "D": [1, 0],
+        "k0": 2.512e6,
+        "Ea": 71.16784,
+        "dH": -41.85e6
+    },
+    {
+        "C0": {
+            "A": 5.1,
+            "B": 0,
+            "C": 0,
+            "D": 0
+        },
+        "VR": 0.01,
+        "v": 1.667e-3,
+        "T0": 387.05,
+        "rho": 934.2,
+        "Cp": 3010,
+        "Tc": 350,
+        "UA": 240.8,
+        "initial": {
+            "C": [2.2291, 1.0417, 0.9140, 0.9152],
+            "T": 352.741
+        }
+    }
+]
+```
+
+We use 3 `{}` to define those reactions and then use the last `{}` to specify other necessary operating parameters. Be aware that enthalpy of reaction ( `"dH"` ) and reaction rate is calculated based on the first component written in each `{}`. In this case, we also set initial values for concentrations and reactor temperature by specifying `"initial"` (optional). If specified, values in `initial["C"]` are assigned to each component in `"C0"` at t=0.
+
+## Define custom scripts 
+
+The control over operating variables ($T_0,\ T_c,\ v,\ UA$) can be automated via user-defined scripts in `scripts/scripts.json`. Each entry contains the script name and a piece of python code.
+
+```
+{
+  "T0 increases linearly": ["T0", "T0 + 0.5"],
+  "T0 decreases linearly": ["T0", "T0 - 0.5"],
+  "T0 fluctuates in a sine wave": ["T0", "350 + 20 * sin( 0.02 * pi * t)"],
+  "Tc increases linearly": ["Tc", "Tc + 0.5"],
+  "Tc decreases linearly": ["Tc", "Tc - 0.5"],
+  "Tc fluctuates in a sine wave": ["Tc", "320 + 20 * sin( 0.02 * pi * t)"],
+  "v increases linearly": ["v", "v + 0.0005"],
+  "v decreases linearly": ["v", "v - 0.0005"],
+  "UA increases linearly": ["UA", "UA + 20"],
+  "UA decreases linearly": ["UA", "UA - 20"]
+}
+```
+
+Once a script is created or modified, save the file and click the Reset button, and it will automatically appear on this window:
