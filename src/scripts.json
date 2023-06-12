@@ -8,5 +8,5 @@
   "v increases linearly": ["v", "v + 0.0005"],
   "v decreases linearly": ["v", "v - 0.0005"],
   "UA increases linearly": ["UA", "UA + 20"],
-  "UA decreases linearly": ["UA", "UA - 20+math.pi"]
+  "UA decreases linearly": ["UA", "UA - 20"]
 }
