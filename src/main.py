@@ -16,7 +16,7 @@ theme_color = ['#79B4B7', '#FDA769', '#98A8F8', '#1597E5'][0]  # green, orange, 
 silver = '#D8D8D8'
 title = 'Dynamic Simulation of CSTR'
 reactions_dir = '../reactions'
-scripts_dir = '..'
+scripts_dir = '../scripts'
 
 plt.rcParams.update({
     'backend': 'TkAgg',
