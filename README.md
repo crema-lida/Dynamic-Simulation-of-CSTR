@@ -2,7 +2,7 @@
 This app allows you to control different operating parameters (e.g., feed temperature and volume flow rate) and study the dynamic behavior of a CSTR. Furthermore, you are able to define your own power-law reactions and scripts to change input parameters.
 
 ## Transient and steady-State curves
-<img width="720" alt="main_window" src="https://github.com/real-Crema/Dynamic-Simulation-of-CSTR/assets/100750226/baea4c3c-66ed-4d5a-a533-f32ab3191ced">
+<img width="720" alt="cascade" src="https://github.com/real-Crema/Dynamic-Simulation-of-CSTR/assets/100750226/f9548e07-1e59-4ddb-8fa4-465019202390">
 
 The change of reactor temperature and concentrations of components with time is obtained by solving a system of ordinary differential equations:
 
@@ -119,7 +119,7 @@ The `.json` file for the van der Vusse reaction looks like this:
 ]
 ```
 
-We use 3 `{}` to define those reactions and then use the last `{}` to specify other necessary operating parameters. Be aware that enthalpy of reaction ( `"dH"` ) and reaction rate is calculated based on the first component written in each `{}`. In this case, we also set initial values for concentrations and reactor temperature by specifying `"initial"` (optional). If specified, values in `initial["C"]` are assigned to each component in `"C0"` at t=0.
+We use 3 `{}` to define those reactions and then use the last `{}` to specify other necessary operating parameters. Be aware that enthalpy of reaction ( `"dH"` ) and reaction rate is calculated based on the first component written in each `{}`. In this case, we also set initial values for concentrations and reactor temperature by specifying `"initial"` (optional). If specified, values in `initial["C"]` are assigned to each component in `"C0"` at t=0; if not specified, the initial values of `"C"` and `"T"` will be identical to `"C0"` and `"T0"`.
 
 ## Define custom scripts 
 
@@ -141,3 +141,6 @@ The control over operating variables ($T_0,\ T_c,\ v,\ UA$) can be automated via
 ```
 
 Once a script is created or modified, save the file and click the Reset button, and it will automatically appear on this window:
+
+<img width="427" alt="control-variables" src="https://github.com/real-Crema/Dynamic-Simulation-of-CSTR/assets/100750226/a7b4fa02-f0cd-4748-b2ed-409079536a61">
+
