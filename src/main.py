@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import NDArray
 from matplotlib.widgets import Slider, Button, RadioButtons, TextBox, CheckButtons
-import multiprocessing
 import math
+import time
 
 from CSTR import CSTR
 
@@ -15,8 +15,10 @@ bg_color = 'white'
 theme_color = ['#79B4B7', '#FDA769', '#98A8F8', '#1597E5'][0]  # green, orange, purple, blue
 silver = '#D8D8D8'
 title = 'Dynamic Simulation of CSTR'
+reactions_dir = '../reactions'
 
 plt.rcParams.update({
+    'backend': 'TkAgg',
     'toolbar': 'None',
     'text.color': text_color,
     'axes.labelcolor': text_color,
@@ -26,8 +28,7 @@ plt.rcParams.update({
 })
 # a window for controlling variables
 fig_setvar = plt.figure(2, figsize=(4, 6), facecolor=bg_color)
-fig_setvar.canvas.manager.window.move(20, 20)
-fig_setvar.canvas.manager.set_window_title('User Defined Variable Behavior')
+plt.get_current_fig_manager().window.wm_geometry('+20+20')
 ax_check_btn = fig_setvar.add_axes([0.1, 0.1, 0.8, 0.8])  # [left, bottom, width, height]
 # main figure window
 fig = plt.figure(1, figsize=(11, 6.8), facecolor=bg_color)
@@ -80,7 +81,7 @@ state = {
     'Q': NDArray,
     'T_lim': [270, 800],
     'Q_lim': [0, 0],
-    'update_interval': 0.,
+    'prompt_start': 0.,
     'reaction': '',
     't_max': 10,
     'tol': 1e-10,
@@ -89,7 +90,8 @@ state = {
     'scripts': {},
 }
 reactor: CSTR
-reaction_list = [fname.replace('.json', '') for fname in sorted(os.listdir('reactions'))]
+reaction_list = [fname.replace('.json', '') for fname in sorted(os.listdir(reactions_dir))]
+prompt = fig.text(0.5, 0.01, '', ha='center', va='bottom', fontweight='light', fontsize=9, color='red')
 
 
 def draw_contour():
@@ -152,8 +154,12 @@ def update_v(val):
 def select_reaction(label):
     if label == state['reaction']:
         return
-    with open(f'reactions/{label}.json') as f:
-        state['params'] = json.load(f)
+    with open(f'{reactions_dir}/{label}.json') as f:
+        try:
+            state['params'] = json.load(f)
+        except json.decoder.JSONDecodeError as err:
+            prompt.set_text(err)
+            state['prompt_start'] = time.time()
     initialize()
     state['reaction'] = label
 
@@ -326,7 +332,8 @@ def run_scripts(t):
             try:
                 setattr(reactor, varname, max(eval(expr, globs), 0))
             except Exception as err:
-                print(err)
+                prompt.set_text(f'Error in executing script: {err}')
+                state['prompt_start'] = time.time()
         if (val := getattr(reactor, varname)) != slider.val:
             slider.set_val(val)
 
@@ -336,7 +343,10 @@ def update_data():
     run_scripts(t[-1])
     C_new, T_new, t_new = reactor.step(C[-1], T[-1], state['t_max'], state['tol'], method='RK45')
     if np.any(np.isnan(C_new[-1])):
-        reset()  # TODO add RuntimeWarning prompt
+        reset()
+        prompt.set_text('Warning: Program has been reset because nan values were encountered. '
+                        'Try to reduce tolerance or slow down your mouse.')
+        state['prompt_start'] = time.time()
         return
     Q_new = reactor.Q_transient(C_new, T_new)
 
@@ -370,6 +380,8 @@ def update_data():
         axQ.set_ylim(state['Q_lim'][0], axQ_ymax)
 
     axT_legend.texts[0].set_text(f'Reactor Temperature: {T[-1]:.2f} K')
+    if prompt.get_text() != '' and time.time() - state['prompt_start'] > 10.:
+        prompt.set_text('')
 
     fig.canvas.draw_idle()
     fig.canvas.flush_events()
@@ -419,7 +431,7 @@ def initialize():
 
 
 if __name__ == '__main__':
-    multiprocessing.freeze_support()
+    fig_setvar.canvas.manager.set_window_title('User Defined Variable Behavior')
     fig.canvas.manager.set_window_title('Initializing...')
     plt.show(block=False)
     fig.canvas.draw_idle()
