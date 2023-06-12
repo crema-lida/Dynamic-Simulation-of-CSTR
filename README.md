@@ -66,13 +66,13 @@ Reactions can be defined by a `.json` file under `reactions` directory. An examp
 ]
 ```
 
-We can define multiple reactions in one file, so that we can simulate a complex system composed of many simple power-law reactions. Take the van der Vusse reaction for example:
+We can define multiple reactions in one file, so that we can simulate a complex system composed of many simple power-law reactions. Take the van de Vusse reaction for example:
 
 $$A\stackrel{k_1}{\longrightarrow} B \stackrel{k_2}{\longrightarrow} C$$
 
 $$2A\stackrel{k_3}{\longrightarrow} D$$
 
-The `.json` file for the van der Vusse reaction looks like this:
+The `.json` file for the van de Vusse reaction looks like this:
 
 ```
 [
