@@ -121,8 +121,8 @@ def update_T0(val):
     reactor.T0 = val
     T = np.linspace(*state['T_lim'], 10)
     ln_Q_rem.set_data(T, reactor.Q_rem(T))
-    # if reactor.UA > 0:
-    #     draw_contour()
+    if reactor.UA > 0:
+        draw_contour()
     if T0_slider.drag_active:
         update_data()
 
@@ -139,8 +139,8 @@ def update_UA(val):
     reactor.UA = val
     T = np.linspace(*state['T_lim'], 10)
     ln_Q_rem.set_data(T, reactor.Q_rem(T))
-    # if reactor.UA > 0:
-    #     draw_contour()
+    if reactor.UA > 0:
+        draw_contour()
     if UA_slider.drag_active:
         update_data()
 
@@ -417,9 +417,8 @@ def initialize():
     v_slider.valmax = min(10 * reactor.v, 2 * reactor.VR)
     v_slider.ax.set_ylim(0, v_slider.valmax)
 
-    # T_max = reactor.solve_steady_state()
-    # draw_contour()
-    T_max = 600
+    T_max = reactor.solve_steady_state()
+    draw_contour()
 
     state['T_lim'][1] = T_max
     ax_Tt.set_ylim(*state['T_lim'])
