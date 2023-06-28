@@ -60,8 +60,8 @@ ln_Tt, = ax_Tt.plot(0, '--', linewidth=0.8, color='red')
 ln_Ct = []
 ax_Tt.set(xlabel='t (s)', ylabel='T (K)')
 ax_Ct.set(ylabel='Concentration (kmol/m$^3$)')
-axT_legend = fig.legend([ln_Tt], [f'Reactor Temperature: - K'],
-                        loc='lower left', bbox_to_anchor=(0.060, .865))
+axT_legend = ax_Tt.legend([ln_Tt], [f'Reactor Temperature: - K'],
+                          loc='upper left')
 axC_legend = None
 
 # Q-T curves
@@ -405,7 +405,7 @@ def initialize():
     ln_Ct = [ax_Ct.plot(0, label=comp, color=next(colors), linewidth=1.2)[0] for comp in reactor.components]
     if axC_legend is not None:
         axC_legend.remove()
-    axC_legend = ax_Ct.legend(loc='upper left', bbox_to_anchor=(0, 0.845))
+    axC_legend = ax_Ct.legend(loc='lower left')
 
     T0_slider.valinit = reactor.T0
     Tc_slider.valinit = reactor.Tc

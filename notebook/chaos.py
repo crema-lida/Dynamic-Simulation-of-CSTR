@@ -56,7 +56,7 @@ if __name__ == '__main__':
     ax.yaxis.set_pane_color("whitesmoke")
     ax.zaxis.set_pane_color("whitesmoke")
     ax.view_init(30, -150)
-    # plt.show(block=False)
+    plt.show(block=False)
 
     # initial values of T, Y, Z
     N = 3  # 2304
@@ -92,9 +92,9 @@ if __name__ == '__main__':
     t = np.zeros((N, 1))
     dt = np.ones(N)
     frame = 0
-    t_max = 2.0
+    t_max = 10
 
-    os.makedirs('animation', exist_ok=True)
+    # os.makedirs('animation', exist_ok=True)
 
     while t[0, -1] < t_max:
         paths = np.append(paths, np.zeros((N, 1, 3)), axis=1)
@@ -114,9 +114,9 @@ if __name__ == '__main__':
             lines[i].set_3d_properties(Z)
         scatter._offsets3d = paths[:, -1].T
 
-        # fig.canvas.draw_idle()
-        # fig.canvas.flush_events()
-        plt.savefig(f'animation/lines_{frame}.jpg', dpi=200)
+        fig.canvas.draw_idle()
+        fig.canvas.flush_events()
+        # plt.savefig(f'animation/lines_{frame}.jpg', dpi=200)
         frame += 1
 
     plt.show(block=True)

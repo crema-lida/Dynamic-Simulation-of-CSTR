@@ -1,16 +1,6 @@
 import numpy as np
 from numba import njit
 
-"""Explicit Runge-Kutta methods"""
-
-# Bogacki-Shampine
-RK23 = np.array([
-    [0, 0, 0, 0],
-    [1 / 2, 0, 0, 0],
-    [0, 3 / 4, 0, 0],
-    [2 / 9, 1 / 3, 4 / 9, 0],  # order 3
-    [7 / 24, 1 / 4, 1 / 3, 1 / 8]  # order 2
-])
 # Dormand-Prince
 RK45 = np.array([
     [0, 0, 0, 0, 0, 0, 0],
