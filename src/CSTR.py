@@ -61,7 +61,7 @@ class CSTR:
             C[i * T.size: (i + 1) * T.size] = sol.x
 
         T_repeated = T.reshape((1, -1)).repeat(sv.size, axis=0).reshape(-1)
-        Q_gen = self.Q_transient(C, T_repeated)
+        Q_gen = self.Q_gen(C, T_repeated)
         self.C_2d = C.reshape((self.C0.size, sv.size, T.size))
         self.Q_gen_2d = Q_gen.reshape((sv.size, T.size))
         self.mgrid = np.meshgrid(sv, T, indexing='ij')
@@ -79,20 +79,20 @@ class CSTR:
             case _:
                 ...  # TODO add contour plot for concentration
 
-    def Q_gen(self, T, sv):
+    def Q_gen_steady(self, T, sv):
         x0 = self.C0.reshape((1, -1)).repeat(T.size, axis=0)
         if sv > 0:
             sol = opt.root(self.C_balance_eql, x0, args=(T, sv), method='krylov')
             C = sol.x
         else:
             C = np.zeros_like(x0)
-        return self.Q_transient(C, T)
+        return self.Q_gen(C, T)
 
     def Q_rem(self, T):
         return self.v * self.Cpv * (T - self.T0) + self.UA * (T - self.Tc)
 
-    def Q_transient(self, C, T):
-        return Q_transient(C, T, self.VR, *self.reac_args)
+    def Q_gen(self, C, T):
+        return Q_gen(C, T, self.VR, *self.reac_args)
 
     def step(self, Ci, Ti, t_max, tol, method='RK45'):
         args = self.v, self.C0, self.T0, self.VR, self.Cpv, self.Tc, self.UA, *self.reac_args
@@ -103,18 +103,18 @@ class CSTR:
         dt = 1.0
         match method:
             case 'RK23':
-                tableau = ode_solve.tableau_RK23
+                tableau = ode_solve.RK23
                 order = 3
             case 'RK45':
-                tableau = ode_solve.tableau_RK45
+                tableau = ode_solve.RK45
                 order = 5
             case _:
                 raise Exception(f'Unknown method {method}.')
 
-        while (t_remain := t_max - t[-1]) > 0 and n_step < 100:
+        while (t_remain := t_max - t[-1]) > 0 and n_step < 200:
             dt = min(dt, t_remain)
             y0 = np.concatenate((C[-1], T[-1:]))
-            y, dt, dt_new = ode_solve.adaptive_RK(dydt, y0, args, dt, tableau, tol, order)
+            y, dt, dt_new = ode_solve.adaptive_RK(dydt, y0, args, dt, tol, tableau, order)
             C_new, T_new = y[:-1], y[-1:]
             C = np.append(C, C_new.reshape((1, -1)), axis=0)
             T = np.append(T, T_new)
@@ -140,7 +140,7 @@ def rate(C, T, coeff, exp, k0, Ea) -> NDArray:  # shape (n_reac, -1, n_comp)
 
 
 @njit(cache=True)
-def Q_transient(C, T, VR, coeff, exp, k0, Ea, dH) -> NDArray:  # shape (-1,)
+def Q_gen(C, T, VR, coeff, exp, k0, Ea, dH) -> NDArray:  # shape (-1,)
     return (dH * VR * rate(C, T, coeff, exp, k0, Ea)).sum(axis=0).sum(axis=1)
 
 
@@ -148,5 +148,5 @@ def Q_transient(C, T, VR, coeff, exp, k0, Ea, dH) -> NDArray:  # shape (-1,)
 def dydt(y, v, C0, T0, VR, Cpv, Tc, UA, coeff, exp, k0, Ea, dH) -> NDArray:  # shape (n_comp + 1,)
     C, T = y[:-1], y[-1:]
     dCdt = (C0 - C) * v / VR + rate(C, T, coeff, exp, k0, Ea).sum(axis=0).reshape(-1)
-    dTdt = Q_transient(C, T, VR, coeff, exp, k0, Ea, dH) / (Cpv * VR) + (T0 - T) * v / VR + UA * (Tc - T) / (Cpv * VR)
+    dTdt = Q_gen(C, T, VR, coeff, exp, k0, Ea, dH) / (Cpv * VR) + (T0 - T) * v / VR + UA * (Tc - T) / (Cpv * VR)
     return np.concatenate((dCdt, dTdt))

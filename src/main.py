@@ -12,7 +12,11 @@ from CSTR import CSTR
 
 text_color = '#333333'
 bg_color = 'white'
-theme_color = ['#79B4B7', '#FDA769', '#98A8F8', '#1597E5'][0]  # green, orange, purple, blue
+ln_C_colors = ['#1f77b4', '#aec7e8', '#ff7f0e', '#ffbb78', '#2ca02c',
+               '#98df8a', '#d62728', '#ff9896', '#9467bd', '#c5b0d5',
+               '#8c564b', '#c49c94', '#e377c2', '#f7b6d2', '#7f7f7f',
+               '#c7c7c7', '#bcbd22', '#dbdb8d', '#17becf', '#9edae5']
+theme_color = '#79B4B7'
 silver = '#D8D8D8'
 title = 'Dynamic Simulation of CSTR'
 reactions_dir = '../reactions'
@@ -34,9 +38,9 @@ ax_check_btn = fig_setvar.add_axes([0.1, 0.1, 0.8, 0.8])  # [left, bottom, width
 # main figure window
 fig = plt.figure(1, figsize=(11, 6.8), facecolor=bg_color)
 fig.text(0.5, 0.945, title, ha='center', va='bottom', fontweight='light', fontsize=16)
-axT = fig.add_axes([0.06, 0.64, 0.57, 0.28], facecolor=(0, 0, 0, 0), zorder=10)
-axQ = fig.add_axes([0.06, 0.08, 0.30, 0.36], facecolor=bg_color)
-axC = axT.twinx()
+ax_Tt = fig.add_axes([0.06, 0.64, 0.57, 0.28], facecolor=(0, 0, 0, 0), zorder=10)
+ax_QT = fig.add_axes([0.06, 0.08, 0.30, 0.36], facecolor=bg_color)
+ax_Ct = ax_Tt.twinx()
 ax_T0_slider = fig.add_axes([0.22, 0.54, 0.32, 0.009])
 ax_Tc_slider = fig.add_axes([0.22, 0.50, 0.32, 0.01])
 ax_v_slider = fig.add_axes([0.39, 0.07, 0.008, 0.33])
@@ -52,25 +56,25 @@ ax_radio_btn.text(0.54, 0.44, 'Reactions', transform=fig.transFigure, ha='center
                   backgroundcolor=bg_color)
 
 # transient curves
-ln_T, = axT.plot(0, '--', linewidth=0.8, color='red')
-ln_C = []
-axT.set(xlabel='t (s)', ylabel='T (K)')
-axC.set(ylabel='Concentration (kmol/m$^3$)')
-axT_legend = fig.legend([ln_T], [f'Reactor Temperature: - K'],
+ln_Tt, = ax_Tt.plot(0, '--', linewidth=0.8, color='red')
+ln_Ct = []
+ax_Tt.set(xlabel='t (s)', ylabel='T (K)')
+ax_Ct.set(ylabel='Concentration (kmol/m$^3$)')
+axT_legend = fig.legend([ln_Tt], [f'Reactor Temperature: - K'],
                         loc='lower left', bbox_to_anchor=(0.060, .865))
 axC_legend = None
 
 # Q-T curves
-ln_Q_gen, = axQ.plot(0, label='$Q_{gen}$', color='#FF731D')
-ln_Q_rem, = axQ.plot(0, label='$Q_{rem}$', color='#5F9DF7')
-ln_Q, = axQ.plot(0, ':', color='darkcyan')
-dot_Q, = axQ.plot(0, '-d', linewidth=0.6, color='darkcyan',
-                  markersize=8, fillstyle='left',
-                  markerfacecolor='darkcyan', markerfacecoloralt='lightcyan',
-                  markeredgecolor='darkcyan', markeredgewidth='0.5')
-axQ.set(xlabel='T (K)', ylabel='Q (J/s)')
-axQ.ticklabel_format(axis='y', scilimits=[-3, 3])
-axQ.legend(loc='upper left')
+ln_Q_gen, = ax_QT.plot(0, label='$Q_{gen}$', color='#FF731D')
+ln_Q_rem, = ax_QT.plot(0, label='$Q_{rem}$', color='#5F9DF7')
+ln_QT, = ax_QT.plot(0, ':', color='darkcyan')
+dot_Q, = ax_QT.plot(0, '-d', linewidth=0.6, color='darkcyan',
+                    markersize=8, fillstyle='left',
+                    markerfacecolor='darkcyan', markerfacecoloralt='lightcyan',
+                    markeredgecolor='darkcyan', markeredgewidth='0.5')
+ax_QT.set(xlabel='T (K)', ylabel='Q (J/s)')
+ax_QT.ticklabel_format(axis='y', scilimits=[-3, 3])
+ax_QT.legend(loc='upper left')
 
 # Tr-v-Tc/T0 graph
 ax_TvT = fig.add_axes([0.74, 0.36, 0.24, 0.48], facecolor=bg_color)
@@ -144,7 +148,7 @@ def update_UA(val):
 def update_v(val):
     reactor.v = val
     T = np.linspace(*state['T_lim'])
-    Q_gen = reactor.Q_gen(T, reactor.v / reactor.VR)
+    Q_gen = reactor.Q_gen_steady(T, reactor.v / reactor.VR)
     ln_Q_gen.set_data(T, Q_gen)
     ln_Q_rem.set_data(T, reactor.Q_rem(T))
     state['Q_lim'] = [np.min(Q_gen), np.max(Q_gen) * 1.5]
@@ -351,7 +355,7 @@ def update_data():
                         'Try to reduce tolerance or slow down your mouse.')
         state['prompt_start'] = time.time()
         return
-    Q_new = reactor.Q_transient(C_new, T_new)
+    Q_new = reactor.Q_gen(C_new, T_new)
 
     t = np.append(t, t[-1] + t_new)
     C = np.append(C, C_new, axis=0)
@@ -366,21 +370,21 @@ def update_data():
 
     state.update({'t': t, 'C': C, 'T': T, 'Q': Q})
 
-    [line.set_data(t, Ci) for line, Ci in zip(ln_C, C.T)]
-    ln_T.set_data(t, T)
-    ln_Q.set_data(T, Q)
+    [line.set_data(t, Ci) for line, Ci in zip(ln_Ct, C.T)]
+    ln_Tt.set_data(t, T)
+    ln_QT.set_data(T, Q)
     dot_Q.set_data([T[-1], T[-1]], [-Q[-1], Q[-1]])
 
-    axT.set_xlim(t[0], t[-1])
-    axC.set_xlim(t[0], t[-1])
+    ax_Tt.set_xlim(t[0], t[-1])
+    ax_Ct.set_xlim(t[0], t[-1])
     axC_ymax = max(np.max(reactor.C0), np.max(C))
-    axC.set_ylim(-axC_ymax * 0.05, axC_ymax * 1.05)
+    ax_Ct.set_ylim(-axC_ymax * 0.05, axC_ymax * 1.05)
     T_max = max([np.nanmax(T), state['T_lim'][1]])
-    axT.set_ylim(top=T_max + (T_max - 270) * 0.05)
-    axQ.set_xlim(right=T_max)
+    ax_Tt.set_ylim(top=T_max + (T_max - 270) * 0.05)
+    ax_QT.set_xlim(right=T_max)
     if state['Q_lim'][0] != state['Q_lim'][1]:
         axQ_ymax = max(state['Q_lim'][1], min(np.max(Q), 1.5 * state['Q_lim'][1]))
-        axQ.set_ylim(state['Q_lim'][0], axQ_ymax)
+        ax_QT.set_ylim(state['Q_lim'][0], axQ_ymax)
 
     axT_legend.texts[0].set_text(f'Reactor Temperature: {T[-1]:.2f} K')
     if prompt.get_text() != '' and time.time() - state['prompt_start'] > 10.:
@@ -392,19 +396,16 @@ def update_data():
 
 def initialize():
     import random
-    global reactor, ln_C, axC_legend
+    global reactor, ln_Ct, axC_legend
 
     reactor = CSTR(state['params'][:-1], **state['params'][-1])
 
-    colors = iter(random.sample(['#1f77b4', '#aec7e8', '#ff7f0e', '#ffbb78', '#2ca02c', '#98df8a',
-                                 '#d62728', '#ff9896', '#9467bd', '#c5b0d5', '#8c564b', '#c49c94',
-                                 '#e377c2', '#f7b6d2', '#7f7f7f', '#c7c7c7', '#bcbd22', '#dbdb8d',
-                                 '#17becf', '#9edae5'], k=len(reactor.components)))
-    [line.remove() for line in ln_C]
-    ln_C = [axC.plot(0, label=comp, color=next(colors), linewidth=1.2)[0] for comp in reactor.components]
+    colors = iter(random.sample(ln_C_colors, k=len(reactor.components)))
+    [line.remove() for line in ln_Ct]
+    ln_Ct = [ax_Ct.plot(0, label=comp, color=next(colors), linewidth=1.2)[0] for comp in reactor.components]
     if axC_legend is not None:
         axC_legend.remove()
-    axC_legend = axC.legend(loc='upper left', bbox_to_anchor=(0, 0.845))
+    axC_legend = ax_Ct.legend(loc='upper left', bbox_to_anchor=(0, 0.845))
 
     T0_slider.valinit = reactor.T0
     Tc_slider.valinit = reactor.Tc
@@ -413,20 +414,20 @@ def initialize():
     UA_slider.valmax = UA_max
     UA_slider.ax.set_ylim(0, UA_max)
     v_slider.valinit = reactor.v
-    v_slider.valmax = 2 * reactor.VR
+    v_slider.valmax = min(10 * reactor.v, 2 * reactor.VR)
     v_slider.ax.set_ylim(0, v_slider.valmax)
 
     T_max = reactor.solve_steady_state()
     draw_contour()
 
     state['T_lim'][1] = T_max
-    axT.set_ylim(*state['T_lim'])
-    axQ.set_xlim(*state['T_lim'])
+    ax_Tt.set_ylim(*state['T_lim'])
+    ax_QT.set_xlim(*state['T_lim'])
     for slider in T0_slider, Tc_slider:
         slider.valmax = T_max
         slider.ax.set_xlim(right=T_max)
     T = np.linspace(*state['T_lim'])
-    Q_gen = reactor.Q_gen(T, reactor.v / reactor.VR)
+    Q_gen = reactor.Q_gen_steady(T, reactor.v / reactor.VR)
     ln_Q_gen.set_data(T, Q_gen)
     ln_Q_rem.set_data(T, reactor.Q_rem(T))
     state['Q_lim'] = [np.min(Q_gen), np.max(Q_gen) * 1.5]
