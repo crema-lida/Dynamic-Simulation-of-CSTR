@@ -18,12 +18,12 @@ gamma2 = 25
 
 @njit
 def dydt(y):
-    Y, Z, T = y
+    T, Y, Z = y
     kY = 1 - Y - Y * Da1 * np.exp(gamma1 * T / (1 + T))
     kZ = 1 - Z - Z * Da2 * np.exp(gamma2 * T / (1 + T))
     kT = alpha * (beta1 * Y * Da1 * np.exp(gamma1 * T / (1 + T)) +
                   beta2 * Z * Da2 * np.exp(gamma2 * T / (1 + T)) - T)
-    return np.array([kY, kZ, kT])
+    return np.array([kT, kY, kZ])
 
 
 def update(conn):
@@ -58,25 +58,26 @@ if __name__ == '__main__':
     ax.view_init(30, -150)
     # plt.show(block=False)
 
-    # initial values of Y, Z, T
-    N = 3
-    Ny = 32
+    # initial values of T, Y, Z
+    N = 3  # 2304
+    Ny = 48
     Nz = N // Ny
     paths = np.zeros((N, 1, 3))
     paths[0, 0] = [0.01, 0.01, 0.01]
-    paths[1, 0] = [0.01, 0.01, 0.01 + 2e-4]
-    paths[2, 0] = [0.01, 0.01, 0.01 - 2e-4]
-    # paths[:, 0] = np.array([np.linspace(*ylim, Ny).reshape((1, -1)).repeat(Nz, axis=0).reshape(-1),
-    #                         np.linspace(*zlim, Nz).repeat(Ny),
-    #                         np.full(Ny * Nz, 0.)]).T
+    paths[1, 0] = [0.01, 0.01, 0.01 + 1e-5]
+    paths[2, 0] = [0.01, 0.01, 0.01 - 1e-5]
+    # paths[:, 0] = np.array([np.full(Ny * Nz, 0.),
+    #                         np.linspace(*ylim, Ny).reshape((1, -1)).repeat(Nz, axis=0).reshape(-1),
+    #                         np.linspace(*zlim, Nz).repeat(Ny)]).T
+    np.random.shuffle(paths)
     lines = []
     scatters = []
-    colors = ['#00AF91', '#FFCC29', '#FF6464']
+    colors = ['#8dd3c7', '#80b1d3', '#fb8072']
     for i, xyz in enumerate(paths):
-        Y, Z, T = xyz.T
-        ln, = ax.plot(T, Y, Z, linewidth=0.6 if i < 2 else 0.3, label=f'line {i}', color=colors[i])
+        ln, = ax.plot(*xyz.T, linewidth=1 if i < 2 else 0.8, label=f'line {i}', color=colors[i])
         lines.append(ln)
-        scatters.append(ax.scatter(T, Y, Z, color=colors[i]))
+    scatter = ax.scatter(*paths[:, -1].T, color=colors)
+    # scatter = ax.scatter(*paths[:, -1].T, color=colors[1], s=1)
 
     N_processes = 1
     n = N // N_processes
@@ -91,7 +92,7 @@ if __name__ == '__main__':
     t = np.zeros((N, 1))
     dt = np.ones(N)
     frame = 0
-    t_max = 2.2
+    t_max = 2.0
 
     os.makedirs('animation', exist_ok=True)
 
@@ -108,11 +109,11 @@ if __name__ == '__main__':
 
         print(f'\r t = {t[0, -1]:.2f}', end='')
         for i, xyz in enumerate(paths):
-            Y, Z, T = xyz.T
+            T, Y, Z = xyz.T
             lines[i].set_data(T, Y)
             lines[i].set_3d_properties(Z)
-            scatters[i].set_offsets([T[-1], Y[-1]])
-            scatters[i].set_3d_properties(Z[-1], zdir='z')
+        scatter._offsets3d = paths[:, -1].T
+
         # fig.canvas.draw_idle()
         # fig.canvas.flush_events()
         plt.savefig(f'animation/lines_{frame}.jpg', dpi=200)
