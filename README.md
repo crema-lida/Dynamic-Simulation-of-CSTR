@@ -36,7 +36,7 @@ The contour plot below demonstrates the relationship between $T_{reactor}$ (y va
 
 <img width="398" alt="TvT_contour" src="https://github.com/real-Crema/Dynamic-Simulation-of-CSTR/assets/100750226/de0d5d99-cab9-41b0-b51c-f2d21c3f41ee">
 
-If we draw a straight line at a certain space velocity, like the yellow one, we find 5 intersections at $T_{coolant}$=300 K, which correspond to 5 possible steady-states. Similarly, the red line has 3 intersections at $T_{coolant}$=400 K. As we decrease $v/V_R$, we moves from multiple steady-state to monotonic behavior.
+If we draw a straight line at a certain space velocity, like the yellow one, we find 5 intersections at $T_{coolant}$=300 K, which correspond to 5 possible steady-states. Similarly, the red line has 3 intersections at $T_{coolant}$=400 K. As we decrease $v/V_R$, we move from multiple steady-state to monotonic behavior.
 ## Define custom reactions
 
 Reactions can be defined by a `.json` file under `reactions` directory. An example file for the first-order reaction $A\longrightarrow P$ is shown below.
@@ -119,7 +119,7 @@ The `.json` file for the van de Vusse reaction looks like this:
 ]
 ```
 
-We use 3 `{}` to define those reactions and then use the last `{}` to specify other necessary operating parameters. Be aware that enthalpy of reaction ( `"dH"` ) and reaction rate is calculated based on the first component written in each `{}`. In this case, we also set initial values for concentrations and reactor temperature by specifying `"initial"` (optional). If specified, values in `initial["C"]` will be assigned to each component at t=0; if not specified, the initial values of `"C"` and `"T"` will be identical to `"C0"` and `"T0"`.
+We use 3 `{}` to define those reactions and then use the last `{}` to specify other necessary operating parameters. Be aware that enthalpy of reaction ( `dH` ) and reaction rate is calculated based on the first component written in each `{}`. In this case, we also set initial values for concentrations and reactor temperature by specifying `initial` (optional). If specified, values in `initial["C"]` will be assigned to each component at t=0; if not specified, the initial values of `C` will be set to 0 and `T` to `T0`.
 
 ## Define custom scripts 
 

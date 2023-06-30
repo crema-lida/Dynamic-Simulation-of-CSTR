@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import NDArray
 from matplotlib.widgets import Slider, Button, RadioButtons, TextBox, CheckButtons
+from matplotlib.backend_bases import MouseButton
 import math
 import time
 
@@ -31,10 +32,10 @@ plt.rcParams.update({
     'xtick.color': text_color,
     'ytick.color': text_color,
 })
-# a window for controlling variables
-fig_setvar = plt.figure(2, figsize=(4, 6), facecolor=bg_color)
+# a dedicated window for controlling variables
+fig_scripts = plt.figure(2, figsize=(4, 6), facecolor=bg_color)
 plt.get_current_fig_manager().window.wm_geometry('+20+20')
-ax_check_btn = fig_setvar.add_axes([0.1, 0.1, 0.8, 0.8])  # [left, bottom, width, height]
+ax_check_btn = fig_scripts.add_axes([0.1, 0.1, 0.8, 0.8])  # [left, bottom, width, height]
 # main figure window
 fig = plt.figure(1, figsize=(11, 6.8), facecolor=bg_color)
 fig.text(0.5, 0.945, title, ha='center', va='bottom', fontweight='light', fontsize=16)
@@ -45,15 +46,17 @@ ax_T0_slider = fig.add_axes([0.22, 0.54, 0.32, 0.009])
 ax_Tc_slider = fig.add_axes([0.22, 0.50, 0.32, 0.01])
 ax_v_slider = fig.add_axes([0.39, 0.07, 0.008, 0.33])
 ax_UA_slider = fig.add_axes([0.44, 0.07, 0.008, 0.33])
-ax_radio_btn = fig.add_axes([0.49, 0.08, 0.17, 0.36], facecolor=bg_color)
-ax_tolerance_input = fig.add_axes([0.92, 0.16, 0.06, 0.04])
-ax_speed_input = fig.add_axes([0.92, 0.1, 0.06, 0.04])
-ax_reset_btn = fig.add_axes([0.92, 0.04, 0.06, 0.04])
+ax_reac_sel_btn = fig.add_axes([0.49, 0.08, 0.17, 0.36], facecolor=bg_color)
+ax_fig_sel_btn = fig.add_axes([0.73, 0.84, 0.12, 0.10], facecolor=bg_color)
+ax_tolerance_input = fig.add_axes([0.92, 0.15, 0.06, 0.04])
+ax_speed_input = fig.add_axes([0.92, 0.09, 0.06, 0.04])
+ax_reset_btn = fig.add_axes([0.92, 0.03, 0.06, 0.04])
 
-for ax in (ax_radio_btn, ax_tolerance_input, ax_speed_input, ax_reset_btn, ax_check_btn):
+for ax in (ax_reac_sel_btn, ax_tolerance_input, ax_speed_input, ax_reset_btn, ax_check_btn):
     plt.setp(ax.spines.values(), color=silver)
-ax_radio_btn.text(0.54, 0.44, 'Reactions', transform=fig.transFigure, ha='center', va='center',
-                  backgroundcolor=bg_color)
+ax_fig_sel_btn.axis('off')
+ax_reac_sel_btn.text(0.54, 0.44, 'Reactions', transform=fig.transFigure, ha='center', va='center',
+                     backgroundcolor=bg_color)
 
 # transient curves
 ln_Tt, = ax_Tt.plot(0, '--', linewidth=0.8, color='red')
@@ -76,8 +79,11 @@ ax_QT.set(xlabel='T (K)', ylabel='Q (J/s)')
 ax_QT.ticklabel_format(axis='y', scilimits=[-3, 3])
 ax_QT.legend(loc='upper left')
 
-# Tr-v-Tc/T0 graph
-ax_TvT = fig.add_axes([0.74, 0.36, 0.24, 0.48], facecolor=bg_color)
+# Tr-v-Tc/T0 contour plot & phase plane
+plot_types = ['Contour Plot', 'Phase Plane']
+ax_diagram = fig.add_axes([0.74, 0.30, 0.24, 0.46], facecolor=bg_color)
+phase_lines = []
+scatter_phase_plane = None
 
 state = {
     't': NDArray,
@@ -87,12 +93,14 @@ state = {
     'T_lim': [270, 800],
     'Q_lim': [0, 0],
     'prompt_start': 0.,
-    'reaction': '',
     't_max': 10,
     'tol': 1e-10,
     'contour': 'Tc',
-    'params': {},
+    'params': [],
     'scripts': {},
+    'reaction_selected': None,
+    'fig_selected': None,
+    'idx_key_comp': 0,
 }
 reactor: CSTR
 reaction_list = [fname.replace('.json', '') for fname in sorted(os.listdir(reactions_dir))]
@@ -100,29 +108,39 @@ prompt = fig.text(0.5, 0.01, '', ha='center', va='bottom', fontweight='light', f
 
 
 def draw_contour():
-    ax_TvT.clear()
+    if reactor.UA == 0 or fig_sel_btn.value_selected != plot_types[0]:
+        return
+    ax_diagram.clear()
     z = reactor.get_2d_data(state['contour'])
-    ax_TvT.contourf(*reactor.mgrid, z,
-                    cmap='RdBu_r')
-    levels = ax_TvT.get_yticks()[1:-1]
+    ax_diagram.contourf(*reactor.mgrid, z,
+                        cmap='RdBu_r')
+    levels = ax_diagram.get_yticks()[1:-1]
     if len(levels) > 5:
         levels = levels[::2]
-    contour = ax_TvT.contour(*reactor.mgrid, z,
-                             levels=levels,
-                             colors=(text_color,),
-                             linewidths=0.5)
-    ax_TvT.clabel(contour, fmt='%.0f', fontsize=9)
-    ax_TvT.set(title='$T_{reactor}/T_{coolant}$ Behavior Changes\nas a Function of Space Velocity',
-               xlabel='Space Velocity (s$^{-1}$)',
-               ylabel='Reactor Temperature (K)')
+    contour = ax_diagram.contour(*reactor.mgrid, z,
+                                 levels=levels,
+                                 colors=(text_color,),
+                                 linewidths=0.5)
+    ax_diagram.clabel(contour, fmt='%.0f', fontsize=9)
+    ax_diagram.set(title='$T_{reactor}/T_{coolant}$ Behavior Changes\nas a Function of Space Velocity',
+                   xlabel='Space Velocity (s$^{-1}$)',
+                   ylabel='Reactor Temperature (K)')
+
+
+def draw_phase_plane():
+    ax_diagram.clear()
+    ax_diagram.set_xlim(*state['T_lim'])
+    ax_diagram.set_ylim(0, reactor.C0[state['idx_key_comp']])
+    ax_diagram.set(title='Phase Plane',
+                   xlabel='T (K)',
+                   ylabel=f'Concentration of {reactor.components[state["idx_key_comp"]]} (mol/L)')
 
 
 def update_T0(val):
     reactor.T0 = val
     T = np.linspace(*state['T_lim'], 10)
     ln_Q_rem.set_data(T, reactor.Q_rem(T))
-    if reactor.UA > 0:
-        draw_contour()
+    draw_contour()
     if T0_slider.drag_active:
         update_data()
 
@@ -139,8 +157,7 @@ def update_UA(val):
     reactor.UA = val
     T = np.linspace(*state['T_lim'], 10)
     ln_Q_rem.set_data(T, reactor.Q_rem(T))
-    if reactor.UA > 0:
-        draw_contour()
+    draw_contour()
     if UA_slider.drag_active:
         update_data()
 
@@ -157,8 +174,9 @@ def update_v(val):
 
 
 def select_reaction(label):
-    if label == state['reaction']:
+    if label == state['reaction_selected']:
         return
+    state['reaction_selected'] = label
     with open(f'{reactions_dir}/{label}.json') as f:
         try:
             state['params'] = json.load(f)
@@ -166,17 +184,28 @@ def select_reaction(label):
             prompt.set_text(err)
             state['prompt_start'] = time.time()
     initialize()
-    state['reaction'] = label
-
-    idx = reaction_list.index(label)
-    edgecolor = [silver] * len(reaction_list)
-    edgecolor[idx] = theme_color
-    facecolor = [bg_color] * len(reaction_list)
-    facecolor[idx] = theme_color
-    radio_btn.set_radio_props({'edgecolor': edgecolor, 'facecolor': facecolor})
 
 
-def reset():
+def draw_phase_line(event):
+    if fig_sel_btn.value_selected == plot_types[1] and \
+            event.inaxes is ax_diagram and event.button is MouseButton.LEFT:
+        phase_lines.append(
+            ax_diagram.plot(event.xdata, event.ydata, color=theme_color, linewidth=1)[0]
+        )
+        reset(event.ydata, event.xdata)
+
+
+def switch_fig(label):
+    if label == state['fig_selected']:
+        return
+    state['fig_selected'] = label
+    if label == plot_types[0]:
+        draw_contour()
+    elif label == plot_types[1]:
+        draw_phase_plane()
+
+
+def reset(C0=None, T0=None):
     if 'C' in reactor.initial:
         state['C'] = np.array(reactor.initial['C'], float).reshape((1, -1))
     else:
@@ -185,18 +214,32 @@ def reset():
         state['T'] = np.array([reactor.initial['T']], float)
     else:
         state['T'] = np.array([reactor.T0], float)
+    if C0 is not None and T0 is not None:  # set initial values on click
+        comp = list(state['params'][0].keys())[0]
+        state['idx_key_comp'] = reactor.components.index(comp)
+        state['C'][0, state['idx_key_comp']] = C0
+        state['T'][0] = T0
+        global scatter_phase_plane
+        if scatter_phase_plane is not None:
+            scatter_phase_plane.remove()
+        scatter_phase_plane = ax_diagram.scatter(T0, C0, color=theme_color, edgecolors=silver)
+    elif fig_sel_btn.value_selected == plot_types[1]:  # clear phase plane
+        phase_lines.clear()
+        draw_phase_plane()
+    else:  # reset all
+        reactor.T0 = T0_slider.valinit
+        reactor.Tc = Tc_slider.valinit
+        reactor.UA = UA_slider.valinit
+        reactor.v = v_slider.valinit
+        T0_slider.reset()
+        Tc_slider.reset()
+        UA_slider.reset()
+        v_slider.reset()
     state['t'] = np.zeros(1)
     state['Q'] = np.zeros(1)
-    reactor.T0 = T0_slider.valinit
-    reactor.Tc = Tc_slider.valinit
-    reactor.UA = UA_slider.valinit
-    reactor.v = v_slider.valinit
-    T0_slider.reset()
-    Tc_slider.reset()
-    UA_slider.reset()
-    v_slider.reset()
 
-    if f'scripts.json' not in os.listdir(scripts_dir):
+    # reload scripts
+    if 'scripts.json' not in os.listdir(scripts_dir):
         prompt.set_text('scripts.json not found.')
         state['prompt_start'] = time.time()
         return
@@ -209,9 +252,9 @@ def reset():
         frame_props={'s': 36, 'linewidth': 2, 'edgecolors': theme_color},
         check_props={'linewidth': 2.8, 'color': theme_color},
     )
-    ax_check_btn.text(0.2, 0.9, 'Scripts', transform=fig_setvar.transFigure, ha='center', va='center',
+    ax_check_btn.text(0.2, 0.9, 'Scripts', transform=fig_scripts.transFigure, ha='center', va='center',
                       backgroundcolor=bg_color)
-    fig_setvar.canvas.draw_idle()
+    fig_scripts.canvas.draw_idle()
 
 
 # widgets for changing parameters
@@ -265,13 +308,21 @@ v_slider = Slider(
 )
 v_slider.on_changed(update_v)
 
-radio_btn = RadioButtons(
-    ax=ax_radio_btn,
+reac_sel_btn = RadioButtons(
+    ax=ax_reac_sel_btn,
     labels=reaction_list,
     activecolor=theme_color,
     radio_props={'edgecolor': silver, 's': 36},
 )
-radio_btn.on_clicked(select_reaction)
+reac_sel_btn.on_clicked(select_reaction)
+
+fig_sel_btn = RadioButtons(
+    ax=ax_fig_sel_btn,
+    labels=plot_types,
+    activecolor=theme_color,
+    radio_props={'edgecolor': silver, 's': 36},
+)
+fig_sel_btn.on_clicked(switch_fig)
 
 tolerance_input = TextBox(
     ax=ax_tolerance_input,
@@ -315,6 +366,7 @@ def on_close():
 
 
 fig.canvas.mpl_connect('close_event', lambda event: on_close())
+fig.canvas.mpl_connect('button_press_event', draw_phase_line)
 
 
 def run_scripts(t):
@@ -374,6 +426,14 @@ def update_data():
     ln_Tt.set_data(t, T)
     ln_QT.set_data(T, Q)
     dot_Q.set_data([T[-1], T[-1]], [-Q[-1], Q[-1]])
+
+    if fig_sel_btn.value_selected == plot_types[1] and len(phase_lines) > 0:
+        x, y = phase_lines[-1].get_data()
+        phase_lines[-1].set_data(
+            np.append(x, T_new),
+            np.append(y, C_new[:, state['idx_key_comp']])
+        )
+        scatter_phase_plane.set_offsets([T_new[-1], C_new[-1, state['idx_key_comp']]])
 
     ax_Tt.set_xlim(t[0], t[-1])
     ax_Ct.set_xlim(t[0], t[-1])
@@ -435,12 +495,12 @@ def initialize():
 
 
 if __name__ == '__main__':
-    fig_setvar.canvas.manager.set_window_title('User Defined Variable Behavior')
+    fig_scripts.canvas.manager.set_window_title('User Defined Variable Behavior')
     fig.canvas.manager.set_window_title('Initializing...')
     plt.show(block=False)
     fig.canvas.draw_idle()
     fig.canvas.flush_events()
-    radio_btn.set_active(0)
+    reac_sel_btn.set_active(0)
     fig.canvas.manager.set_window_title(title)
 
     while not window_closed:

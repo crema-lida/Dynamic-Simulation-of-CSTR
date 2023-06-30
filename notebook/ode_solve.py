@@ -1,5 +1,4 @@
 import numpy as np
-from numba import njit
 
 # Dormand-Prince
 RK45 = np.array([
@@ -14,7 +13,6 @@ RK45 = np.array([
 ])
 
 
-@njit
 def adaptive_RK(fun, y0, args=(), dt=1., tol=1e-10, tableau=RK45, order=5):
     k = np.zeros((y0.size, tableau.shape[1]))
     stages = np.zeros((tableau.shape[0], y0.size))

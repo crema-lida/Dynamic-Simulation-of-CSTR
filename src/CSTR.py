@@ -125,7 +125,7 @@ class CSTR:
         return C[1:], T[1:], t[1:]
 
 
-@njit(cache=True)
+# @njit(cache=False)
 def rate(C, T, coeff, exp, k0, Ea) -> NDArray:  # shape (n_reac, -1, n_comp)
     C = C.reshape((1, -1, C.shape[-1]))
     T = T.reshape((1, -1, 1))
@@ -139,12 +139,12 @@ def rate(C, T, coeff, exp, k0, Ea) -> NDArray:  # shape (n_reac, -1, n_comp)
     return coeff * f_T * f_C
 
 
-@njit(cache=True)
+# @njit(cache=False)
 def Q_gen(C, T, VR, coeff, exp, k0, Ea, dH) -> NDArray:  # shape (-1,)
     return (dH * VR * rate(C, T, coeff, exp, k0, Ea)).sum(axis=0).sum(axis=1)
 
 
-@njit(cache=True)
+# @njit(cache=False)
 def dydt(y, v, C0, T0, VR, Cpv, Tc, UA, coeff, exp, k0, Ea, dH) -> NDArray:  # shape (n_comp + 1,)
     C, T = y[:-1], y[-1:]
     dCdt = (C0 - C) * v / VR + rate(C, T, coeff, exp, k0, Ea).sum(axis=0).reshape(-1)

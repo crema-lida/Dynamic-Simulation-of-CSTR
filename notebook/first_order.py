@@ -112,7 +112,7 @@ ax_Qt.legend(loc='upper left')
 ax_Qt.set(xlabel='t (s)', ylabel='Q (J/s)')
 ax_Qt.ticklabel_format(axis='x', useOffset=False)
 
-DIR = 'first_order'
+DIR = 'figures/first_order'
 # os.makedirs(DIR, exist_ok=True)
 # for i, name in enumerate(['QT', 'CTQ-t'], start=1):
 #     plt.figure(i)

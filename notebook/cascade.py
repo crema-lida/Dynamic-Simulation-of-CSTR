@@ -129,8 +129,8 @@ ax_Qt.set(xlabel='t (s)', ylabel='Q (J/s)',
           xlim=xlim, ylim=ylim)
 ax_Qt.ticklabel_format(axis='x', useOffset=False)
 
-# # DIR = 'cascade/UA_600'
-# DIR = 'cascade/UA_315'
+# # DIR = 'figures/cascade/UA_600'
+DIR = 'figures/cascade/UA_315'
 # os.makedirs(DIR, exist_ok=True)
 # for i, name in enumerate(['QT', 'C-t', 'Q-t'], start=1):
 #     plt.figure(i)
