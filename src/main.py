@@ -20,7 +20,7 @@ ln_C_colors = ['#1f77b4', '#aec7e8', '#ff7f0e', '#ffbb78', '#2ca02c',
 theme_color = '#79B4B7'
 silver = '#D8D8D8'
 title = 'Dynamic Simulation of CSTR'
-reactions_dir = '../reactions'
+reactions_dir = './reactions'
 scripts_dir = './scripts'
 
 plt.rcParams.update({
