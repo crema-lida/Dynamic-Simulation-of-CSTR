@@ -21,7 +21,7 @@ rho = 100  # kg/m3
 Cp = 600  # J/(kg*K)
 Tc = 330.
 # UA = 600.  # J/(s*K)
-UA = 315.
+UA = 500.
 
 
 def Q_gen(CA, CP, T):
@@ -41,7 +41,7 @@ def dydt(y, T0):
     return np.array([kCA, kCP, kCS, kT])
 
 
-t_max = 1500
+t_max = 1400
 dt = 1.0
 
 """initial values"""
@@ -94,9 +94,8 @@ ax_Qt = fig_Qt.add_subplot()
 Tx = np.linspace(250, 1000, 100)
 Q_gen_steady = -dH1 * VR * k1(Tx) * CA0 / (1 + k1(Tx) * VR / v) - \
                dH2 * VR * k2(Tx) * (v * CP0 + (k1(Tx) * CA0 * v * VR / (k1(Tx) * VR + v))) / (k2(Tx) * VR + v)
-# UA = 600
-UA = 315
-Q_rem_steady = Q_rem(Tx, T0)
+
+Q_rem_steady = Q_rem(Tx, T0_arr[-1])
 
 ax_QT.plot(Tx, Q_gen_steady, color='#FF731D', label='$Q_{gen}$')
 ax_QT.plot(Tx, Q_rem_steady, color='#5F9DF7', label='$Q_{rem}$')
@@ -106,31 +105,31 @@ ax_QT.set(xlabel='T (K)', ylabel='Q (J/s)',
           xlim=(250, 950), ylim=(0, 1.7e6))
 ax_QT.ticklabel_format(axis='y', scilimits=[-3, 3])
 
+xlim, ylim = (1335, 1359), (3e4, 6e8)
+
 ax_Tt.plot(t, T, color='#F45050', label='$T_r$')
 ax_Tt.plot(t, T0_arr, color='#0079FF', label='$T_0$')
 ax_Tt.legend(loc='upper left')
 ax_Tt.set(xlabel='t (s)', ylabel='T (K)',
-          xlim=(1345, 1355))
+          xlim=xlim)
 
 ax_Ct.plot(t, CA, color='#FD8A8A', label='$c_A$')
 ax_Ct.plot(t, CP, color='#9EA1D4', label='$c_P$')
 ax_Ct.plot(t, CS, color='#A8D1D1', label='$c_S$')
 ax_Ct.legend(loc='upper left')
 ax_Ct.set(xlabel='t (s)', ylabel='Concentration (kmol/m$^3$)',
-          xlim=(1345, 1355))
+          xlim=xlim)
 
-# xlim, ylim = (1355, 1356), (4e4, 4e6)
-# xlim, ylim = (2323.8, 2324.4), (2e5, 1e8)
-xlim, ylim = (1349, 1350), (5e4, 1e9)
 ax_Qt.semilogy(t, Q_gen_transient, color='#FF731D', label='$Q_{gen}$')
 ax_Qt.semilogy(t, Q_rem_transient, color='#5F9DF7', label='$Q_{rem}$')
 ax_Qt.legend(loc='upper left')
 ax_Qt.set(xlabel='t (s)', ylabel='Q (J/s)',
-          xlim=xlim, ylim=ylim)
+          xlim=(1345.5, 1347.5), ylim=ylim,
+          xticks=np.linspace(1345.5, 1347.5, 5))
 ax_Qt.ticklabel_format(axis='x', useOffset=False)
 
 # # DIR = 'figures/cascade/UA_600'
-DIR = 'figures/cascade/UA_315'
+DIR = 'figures/cascade/UA_500'
 # os.makedirs(DIR, exist_ok=True)
 # for i, name in enumerate(['QT', 'C-t', 'Q-t'], start=1):
 #     plt.figure(i)
